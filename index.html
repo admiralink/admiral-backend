@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admiral Ink | High-Speed Hotspot</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        :root { 
+            --primary: rgb(0, 152, 255); 
+            --dark: #353535; 
+            --card: #161b22; 
+        }
+
+        body { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
+            background: var(--dark); 
+            color: white; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            box-sizing: border-box;
+        }
+
+        .container {
+            border: 1px solid rgb(31, 35, 37);
+            margin: auto;
+            padding: 0 0 20px 0;
+            width: 400px;
+            max-width: 90vw;
+            background-color: rgb(255, 255, 255);
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .topnav { 
+            width: 100%;
+            overflow: hidden; 
+            background-color: var(--primary); 
+            display: flex; 
+            justify-content: space-around;
+        }
+
+        .topnav a { 
+            display: block; 
+            color: white; 
+            text-align: center; 
+            padding: 14px 16px; 
+            text-decoration: none; 
+            font-size: 16px; 
+            font-weight: bold;
+        }
+
+        .header {
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        .header h1 { 
+            color: var(--primary); 
+            margin-bottom: 5px; 
+            text-transform: uppercase; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            font-size: 24px;
+        }
+
+        .welcome {
+            text-align: center;
+            color: black;
+            font-size: 16px;
+            font-style: italic;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .section-divider {
+            color: #666;
+            font-size: 14px;
+            margin: 15px 0 5px 0;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .plan-card { 
+            background: var(--card); 
+            padding: 15px 20px; 
+            border-radius: 15px; 
+            margin: 8px 0; 
+            border: 2px solid #e1e3e6; 
+            transition: 0.3s; 
+            cursor: pointer; 
+            width: 80%;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+        }
+
+        .plan-card:hover, .plan-card.selected { 
+            border-color: var(--primary); 
+            background: #1f2937;
+        }
+
+        .price { 
+            font-size: 24px; 
+            font-weight: bold; 
+            display: block; 
+            color: white; 
+            margin-bottom: 4px;
+        }
+
+        .details { 
+            font-size: 14px; 
+            color: #8b949e; 
+            white-space: nowrap; 
+        }
+
+        input { 
+            width: 80%; 
+            padding: 12px; 
+            margin: 5px 0; 
+            border-radius: 8px; 
+            border: 2px solid #ccc; 
+            background: #fff; 
+            color: #000; 
+            box-sizing: border-box; 
+            font-size: 16px;
+        }
+
+        input:focus {  
+            outline: none;
+            border: 2px solid var(--primary);
+        }
+
+        .btn-action { 
+            width: 80%; 
+            padding: 15px; 
+            background: var(--primary); 
+            border: none; 
+            border-radius: 8px; 
+            color: white;
+            font-size: 16px;
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        #pay-button {
+            background: #22c55e; 
+            margin-top: 15px;
+        }
+
+        .copyright {
+            font-size: 11px;
+            color: rgb(0, 0, 0);
+            margin-top: 20px;
+            text-align: center;
+            width: 85%;
+        }
+
+        /* Modal Popup for Voucher Display */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #161b22;
+            border: 2px solid #22c55e;
+            border-radius: 15px;
+            padding: 25px;
+            width: 85%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .voucher-box {
+            background: #0d1117;
+            border: 1px dashed var(--primary);
+            color: #22c55e;
+            font-size: 26px;
+            font-family: monospace;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            letter-spacing: 2px;
+        }
+
+        .btn-copy {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head> 
+<body>
+    <div class="container">
+        <div class="topnav">
+            <a href="#">Home</a>
+            <a href="#">Products</a>
+            <a href="#">About Us</a>
+        </div>
+        
+        <div class="header">
+            <h1>ADMIRAL INK <img src="admimg.jpeg" alt="adm" width="26px" height="26px"></h1>
+            <p class="welcome">Select a plan or enter your voucher code</p>
+        </div>
+
+        <!-- PATH 1: PHYSICAL SHOP VOUCHER -->
+        <div class="section-divider">Have a Voucher?</div>
+        <input type="text" id="voucher-code" placeholder="Enter Voucher Code">
+        <button type="button" class="btn-action" id="activate-voucher-btn" onclick="submitPhysicalVoucher()">Activate Voucher</button>
+
+        <!-- PATH 2: PAYSTACK ONLINE PURCHASE -->
+        <div class="section-divider">Or Buy Access Online</div>
+        <input type="tel" id="phone" placeholder="Phone Number for Mobile Money">
+
+        <div class="plan-card" id="plan-1" onclick="selectPlan(210, '22 Hours Access', 1320, 'plan-1')">
+            <span class="price">2.10 ₵</span>
+            <span class="details">22 Hours • Unlimited</span>
+        </div>
+
+        <div class="plan-card" id="plan-2" onclick="selectPlan(1230, '7-Days Access', 10080, 'plan-2')">
+            <span class="price">12.30 ₵</span>
+            <span class="details">7 Days • Unlimited</span>
+        </div>
+
+        <div class="plan-card" id="plan-3" onclick="selectPlan(4600, '30 Days Access', 43200, 'plan-3')">
+            <span class="price">46.00 ₵</span>
+            <span class="details">Full Month • Unlimited</span>
+        </div>
+
+        <button type="button" class="btn-action" id="pay-button" onclick="payWithPaystack()">Select a Wi-Fi Plan First</button>
+        
+        <p class="copyright">Copyright © 2026 ADMIRAL INK & BEATZ. All rights reserved.</p>
+    </div>
+
+    <!-- MODAL POPUP FOR COPYABLE VOUCHER -->
+    <div class="modal-overlay" id="voucher-modal">
+        <div class="modal-content">
+            <h2 style="color: #22c55e; margin-top:0;">Payment Confirmed!</h2>
+            <p style="font-size: 14px; color: #8b949e;">Your device is now connected. Save your backup voucher code below:</p>
+            <div class="voucher-box" id="modal-voucher-code">----</div>
+            <button class="btn-copy" onclick="copyVoucherToClipboard()">Copy Code & Close</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedAmount = 0;
+        let selectedLabel = "";
+        let selectedDurationMinutes = 60;
+
+        // UPDATE THIS TO YOUR LIVE RENDER URL ONCE DEPLOYED!
+        const BACKEND_API_URL = "https://admiral-backend.onrender.com/api/verify-and-connect";
+
+        // Extract parameters attached by TP-Link Omada ER605/EAP610
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientMac = urlParams.get('clientMac') || '';
+        const apMac = urlParams.get('apMac') || '';
+        const ssidName = urlParams.get('ssidName') || urlParams.get('ssid') || '';
+        const targetUrl = urlParams.get('targetUrl') || 'https://www.google.com';
+
+        function selectPlan(amountInPesewas, label, durationMinutes, cardId) {
+            selectedAmount = amountInPesewas;
+            selectedLabel = label;
+            selectedDurationMinutes = durationMinutes;
+            
+            document.querySelectorAll('.plan-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById(cardId).classList.add('selected');
+            
+            document.getElementById('pay-button').innerText = `Pay ₵${(amountInPesewas/100).toFixed(2)} for ${label}`;
+        }
+
+        // PATH 1: Submit Physical Voucher directly to Omada
+        function submitPhysicalVoucher() {
+            const voucher = document.getElementById('voucher-code').value.trim();
+            if (!voucher) return alert("Please type your shop voucher code first.");
+
+            // Construct Omada Portal Authentication form submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/portal/auth'; // Omada internal auth endpoint
+
+            const params = {
+                'voucherCode': voucher,
+                'clientMac': clientMac,
+                'apMac': apMac,
+                'ssidName': ssidName,
+                'redirectUrl': targetUrl
+            };
+
+            for (const key in params) {
+                const hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = key;
+                hiddenField.value = params[key];
+                form.appendChild(hiddenField);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // PATH 2: Paystack Online Payment
+        function payWithPaystack() {
+            if (selectedAmount === 0) return alert("Please select a Wi-Fi plan card first!");
+
+            const phone = document.getElementById('phone').value.trim();
+            if (!phone) return alert("Please enter your mobile phone number!");
+
+            const fallbackEmail = `${phone}@admiralink.com`;
+
+            let handler = PaystackPop.setup({
+                key: 'pk_live_4f0c3e3519fe0b01e20ec1cdb0bac29dfa9d30ca', 
+                email: fallbackEmail,
+                amount: selectedAmount, 
+                currency: 'GHS',
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Mobile Number", variable_name: "mobile_number", value: phone },
+                        { display_name: "Requested Package", variable_name: "package", value: selectedLabel },
+                        { display_name: "Client MAC", variable_name: "client_mac", value: clientMac }
+                    ]
+                },
+                callback: function(response) {
+                    authorizeDeviceViaBackend(response.reference);
+                }
+            });
+            handler.openIframe();
+        }
+
+        function authorizeDeviceViaBackend(reference) {
+            const payBtn = document.getElementById('pay-button');
+            payBtn.innerText = "Verifying Payment & Connecting...";
+            payBtn.disabled = true;
+
+            fetch(BACKEND_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    reference: reference, 
+                    clientMac: clientMac,
+                    apMac: apMac,
+                    ssidName: ssidName,
+                    durationMinutes: selectedDurationMinutes
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Show generated backup voucher code in modal popup
+                    document.getElementById('modal-voucher-code').innerText = data.voucherCode || "CONNECTED";
+                    document.getElementById('voucher-modal').style.display = 'flex';
+                } else {
+                    alert("Verification Failed: " + (data.message || "Unknown Error"));
+                    payBtn.innerText = `Pay for ${selectedLabel}`;
+                    payBtn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error("Network Error:", err);
+                alert("Verification request failed. Please ensure backend is awake.");
+                payBtn.innerText = `Pay for ${selectedLabel}`;
+                payBtn.disabled = false;
+            });
+        }
+
+        function copyVoucherToClipboard() {
+            const code = document.getElementById('modal-voucher-code').innerText;
+            navigator.clipboard.writeText(code);
+            alert("Voucher code copied to clipboard! Redirecting now...");
+            window.location.href = targetUrl;
+        }
+    </script>
+</body>
+</html>

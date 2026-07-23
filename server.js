@@ -2,18 +2,40 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const https = require('https');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve static assets (HTML, CSS, JS) from the "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Ignore self-signed SSL certs from local Omada Controller hardware
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 // Helper to sanitize MAC addresses (Omada expects XX-XX-XX-XX-XX-XX or XXXXXXXXXXXX depending on version)
-const formatMac = (mac) => mac ? mac.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+const formatMac = (mac) => (mac ? mac.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '');
 
+// -----------------------------------------------------------------------------
+// ROOT ROUTE: Serves the landing page when Omada redirects captive portal users
+// -----------------------------------------------------------------------------
+app.get('/', (req, res) => {
+    // Serves public/index.html while retaining URL query parameters (clientMac, apMac, etc.)
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Alternative explicit portal route if Omada redirects to /portal/entry
+app.get('/portal/entry', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// -----------------------------------------------------------------------------
+// PAYSTACK VERIFICATION & OMADA VOUCHER GENERATION
+// -----------------------------------------------------------------------------
 app.post('/api/verify-and-connect', async (req, res) => {
     const { reference, clientMac, apMac, durationMinutes } = req.body;
 
@@ -55,7 +77,6 @@ app.post('/api/verify-and-connect', async (req, res) => {
         };
 
         // STEP 3: Create Voucher in Omada Controller
-        // Convert duration to minutes (or hours depending on your Omada firmware version)
         const voucherPayload = {
             name: `Paystack_${reference.substring(0, 8)}`,
             amount: 1, // Number of voucher codes to generate
@@ -112,3 +133,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Admiral Hotspot Backend running on port ${PORT}`);
 });
+
+module.exports = app;

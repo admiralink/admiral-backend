@@ -3,6 +3,7 @@ const axios = require('axios');
 const cors = require('cors');
 const https = require('https');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -11,26 +12,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static assets (CSS, JS, images, HTML) from the root directory
+// Serve static assets if requested directly
 app.use(express.static(__dirname));
 
 // Ignore self-signed SSL certs from local Omada Controller hardware
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-// Helper to sanitize MAC addresses (Omada expects XX-XX-XX-XX-XX-XX or XXXXXXXXXXXX depending on version)
+// Helper to sanitize MAC addresses
 const formatMac = (mac) => (mac ? mac.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '');
 
 // -----------------------------------------------------------------------------
-// ROOT ROUTE: Serves the landing page when Omada redirects captive portal users
+// ROOT ROUTE: Serves index.html content directly to prevent Vercel GET errors
 // -----------------------------------------------------------------------------
-app.get('/', (req, res) => {
-    // Serves index.html from root while retaining URL query parameters (clientMac, apMac, etc.)
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Alternative explicit portal route if Omada redirects to /portal/entry
-app.get('/portal/entry', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+app.get(['/', '/portal/entry', '/index.html'], (req, res) => {
+    try {
+        const htmlPath = path.join(__dirname, 'index.html');
+        const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+        res.setHeader('Content-Type', 'text/html');
+        return res.status(200).send(htmlContent);
+    } catch (err) {
+        console.error('Error reading index.html:', err);
+        return res.status(500).send('Error loading landing page.');
+    }
 });
 
 // -----------------------------------------------------------------------------
@@ -79,10 +82,10 @@ app.post('/api/verify-and-connect', async (req, res) => {
         // STEP 3: Create Voucher in Omada Controller
         const voucherPayload = {
             name: `Paystack_${reference.substring(0, 8)}`,
-            amount: 1, // Number of voucher codes to generate
-            duration: parseInt(durationMinutes, 10) || 1320, // Default 22 hrs
-            amountType: 0, // 0 = Single device access
-            trafficLimit: 0, // 0 = Unlimited
+            amount: 1, 
+            duration: parseInt(durationMinutes, 10) || 1320, 
+            amountType: 0, 
+            trafficLimit: 0, 
             upRateEnable: 0,
             downRateEnable: 0
         };
@@ -94,7 +97,6 @@ app.post('/api/verify-and-connect', async (req, res) => {
             { headers: omadaHeaders, httpsAgent }
         );
 
-        // Omada returns an array of generated voucher objects or batch ID
         const generatedVouchers = voucherRes.data.result;
         let createdVoucherCode = '';
 
@@ -103,7 +105,6 @@ app.post('/api/verify-and-connect', async (req, res) => {
         } else if (generatedVouchers && generatedVouchers.code) {
             createdVoucherCode = generatedVouchers.code;
         } else {
-            // Fetch the latest generated batch if the response returns a batch object
             const batchId = generatedVouchers.id || generatedVouchers;
             const batchRes = await axios.get(
                 `${process.env.OMADA_URL}/${process.env.OMADA_CONTROLLER_ID}/api/v2/sites/${site}/vouchers/${batchId}`,

@@ -3,7 +3,6 @@ const axios = require('axios');
 const cors = require('cors');
 const https = require('https');
 const path = require('path');
-const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -12,8 +11,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static assets if requested directly
-app.use(express.static(__dirname));
+// Serve static files from root directory
+app.use(express.static(process.cwd()));
 
 // Ignore self-signed SSL certs from local Omada Controller hardware
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
@@ -22,18 +21,11 @@ const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 const formatMac = (mac) => (mac ? mac.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '');
 
 // -----------------------------------------------------------------------------
-// ROOT ROUTE: Serves index.html content directly to prevent Vercel GET errors
+// ROOT ROUTE: Serves index.html when Omada redirects captive portal users
 // -----------------------------------------------------------------------------
 app.get(['/', '/portal/entry', '/index.html'], (req, res) => {
-    try {
-        const htmlPath = path.join(__dirname, 'index.html');
-        const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-        res.setHeader('Content-Type', 'text/html');
-        return res.status(200).send(htmlContent);
-    } catch (err) {
-        console.error('Error reading index.html:', err);
-        return res.status(500).send('Error loading landing page.');
-    }
+    const filePath = path.join(process.cwd(), 'index.html');
+    res.sendFile(filePath);
 });
 
 // -----------------------------------------------------------------------------

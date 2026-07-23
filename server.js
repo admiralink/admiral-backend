@@ -11,8 +11,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static assets (HTML, CSS, JS) from the "public" folder
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static assets (CSS, JS, images, HTML) from the root directory
+app.use(express.static(__dirname));
 
 // Ignore self-signed SSL certs from local Omada Controller hardware
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
@@ -24,13 +24,13 @@ const formatMac = (mac) => (mac ? mac.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
 // ROOT ROUTE: Serves the landing page when Omada redirects captive portal users
 // -----------------------------------------------------------------------------
 app.get('/', (req, res) => {
-    // Serves public/index.html while retaining URL query parameters (clientMac, apMac, etc.)
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    // Serves index.html from root while retaining URL query parameters (clientMac, apMac, etc.)
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Alternative explicit portal route if Omada redirects to /portal/entry
 app.get('/portal/entry', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // -----------------------------------------------------------------------------

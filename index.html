@@ -225,7 +225,7 @@
         </div>
         
         <div class="header">
-            <h1>ADMIRAL INK <img src="admimg.jpeg" alt="adm" width="26px" height="26px"></h1>
+            <h1>ADMIRAL INK <img src="admimg.jpeg" alt="adm" width="26px" height="26px" onerror="this.style.display='none'"></h1>
             <p class="welcome">Select a plan or enter your voucher code</p>
         </div>
 
@@ -273,8 +273,8 @@
         let selectedLabel = "";
         let selectedDurationMinutes = 60;
 
-        // UPDATE THIS TO YOUR LIVE RENDER URL ONCE DEPLOYED!
-        const BACKEND_API_URL = "https://admiral-backend.onrender.com/api/verify-and-connect";
+        // LIVE VERCEL BACKEND URL
+        const BACKEND_BASE_URL = "https://admiral-backend-16lw-q40js6su2-admiralinks-projects.vercel.app";
 
         // Extract parameters attached by TP-Link Omada ER605/EAP610
         const urlParams = new URLSearchParams(window.location.search);
@@ -328,7 +328,7 @@
         function payWithPaystack() {
             if (selectedAmount === 0) return alert("Please select a Wi-Fi plan card first!");
 
-            const phone = document.getElementById('phone').value.trim();
+            let phone = document.getElementById('phone').value.trim().replace(/\s+/g, '');
             if (!phone) return alert("Please enter your mobile phone number!");
 
             const fallbackEmail = `${phone}@admiralink.com`;
@@ -357,7 +357,9 @@
             payBtn.innerText = "Verifying Payment & Connecting...";
             payBtn.disabled = true;
 
-            fetch(BACKEND_API_URL, {
+            const targetApiUrl = `${BACKEND_BASE_URL}/api/verify-and-connect`;
+
+            fetch(targetApiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
